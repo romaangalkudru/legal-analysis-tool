@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AI Legal Analysis Tool — Roma Angalkudru</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #ffffff;
+    --bg-secondary: #f6f5f1;
+    --text-primary: #1a1a18;
+    --text-secondary: #5f5e5a;
+    --text-tertiary: #888780;
+    --border-light: rgba(0,0,0,0.12);
+    --border-mid: rgba(0,0,0,0.22);
+    --border-strong: rgba(0,0,0,0.35);
+    --radius-md: 8px;
+    --radius-lg: 12px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1c1c1a;
+      --bg-secondary: #252522;
+      --text-primary: #f0ede6;
+      --text-secondary: #a8a69f;
+      --text-tertiary: #6b6964;
+      --border-light: rgba(255,255,255,0.1);
+      --border-mid: rgba(255,255,255,0.18);
+      --border-strong: rgba(255,255,255,0.28);
+    }
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text-primary);
+    min-height: 100vh;
+    padding: 2rem 1rem 4rem;
+  }
+
+  .container {
+    max-width: 680px;
+    margin: 0 auto;
+  }
+
+  .top-label {
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+    margin-bottom: 8px;
+  }
+
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 32px;
+    font-weight: 500;
+    line-height: 1.2;
+    color: var(--text-primary);
+    margin-bottom: 10px;
+  }
+
+  .subtitle {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.7;
+    margin-bottom: 2rem;
+  }
+
+  .divider {
+    height: 0.5px;
+    background: var(--border-light);
+    margin: 1.75rem 0;
+  }
+
+  .section-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+    display: block;
+  }
+
+  .framework-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+  }
+
+  .framework-btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    padding: 6px 16px;
+    border-radius: 20px;
+    border: 0.5px solid var(--border-mid);
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .framework-btn:hover {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+  }
+
+  .framework-btn.active {
+    background: var(--text-primary);
+    color: var(--bg);
+    border-color: var(--text-primary);
+  }
+
+  textarea {
+    width: 100%;
+    min-height: 140px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    padding: 14px;
+    border: 0.5px solid var(--border-mid);
+    border-radius: var(--radius-md);
+    background: var(--bg);
+    color: var(--text-primary);
+    resize: vertical;
+    line-height: 1.7;
+    transition: border-color 0.15s;
+  }
+
+  textarea:focus {
+    outline: none;
+    border-color: var(--border-strong);
+  }
+
+  textarea::placeholder { color: var(--text-tertiary); }
+
+  .examples-row {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+  }
+
+  .example-chip {
+    font-size: 11px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    border: 0.5px solid var(--border-light);
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .example-chip:hover {
+    border-color: var(--border-strong);
+    color: var(--text-primary);
+  }
+
+  .analyze-btn {
+    width: 100%;
+    padding: 13px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    background: var(--text-primary);
+    color: var(--bg);
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: opacity 0.15s;
+    margin-top: 1.25rem;
+  }
+
+  .analyze-btn:hover { opacity: 0.82; }
+  .analyze-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  .result-card {
+    margin-top: 1.75rem;
+    border: 0.5px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    display: none;
+  }
+
+  .result-card.visible { display: block; }
+
+  .result-header {
+    padding: 12px 16px;
+    border-bottom: 0.5px solid var(--border-light);
+    background: var(--bg-secondary);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .result-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+
+  .result-badge {
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    background: var(--bg);
+    border: 0.5px solid var(--border-mid);
+    color: var(--text-secondary);
+  }
+
+  .result-body {
+    padding: 1.25rem;
+    font-size: 14px;
+    line-height: 1.85;
+    color: var(--text-primary);
+    white-space: pre-wrap;
+  }
+
+  .loading-dots {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    padding: 1.25rem;
+  }
+
+  .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--text-tertiary);
+    animation: pulse 1.2s ease-in-out infinite;
+  }
+  .dot:nth-child(2) { animation-delay: 0.2s; }
+  .dot:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes pulse {
+    0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
+    40% { opacity: 1; transform: scale(1); }
+  }
+
+  .error-msg {
+    font-size: 13px;
+    color: #a32d2d;
+    padding: 1rem 1.25rem;
+  }
+
+  .footer {
+    margin-top: 3rem;
+    padding-top: 1.5rem;
+    border-top: 0.5px solid var(--border-light);
+    font-size: 11px;
+    color: var(--text-tertiary);
+    line-height: 1.7;
+    text-align: center;
+  }
+
+  .footer a {
+    color: var(--text-tertiary);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <p class="top-label">Gretzky Portfolio &nbsp;·&nbsp; Roma Angalkudru &nbsp;·&nbsp; DT&amp;L Spring 2026</p>
+  <h1>AI Legal Analysis Tool</h1>
+  <p class="subtitle">Enter a legal scenario, tech policy issue, or case fact pattern. Select a framework and generate a structured analysis — powered by Claude. Built as part of the AI Experimentation Exercise.</p>
+
+  <div class="divider"></div>
+
+  <span class="section-label">Select a framework</span>
+  <div class="framework-row" id="frameworkRow">
+    <button class="framework-btn active" data-fw="IRAC">IRAC</button>
+    <button class="framework-btn" data-fw="Policy Analysis">Policy Analysis</button>
+    <button class="framework-btn" data-fw="Ethical + Legal">Ethical + Legal</button>
+    <button class="framework-btn" data-fw="Stakeholder Impact">Stakeholder Impact</button>
+  </div>
+
+  <span class="section-label">Describe the scenario or issue</span>
+  <textarea id="scenarioInput" placeholder="e.g. A gig economy platform misclassifies workers as independent contractors to avoid providing benefits. A state AG is considering enforcement action..."></textarea>
+
+  <div class="examples-row">
+    <span class="example-chip" data-text="An AI system trained on copyrighted creative works is used commercially without licensing. Analyze the IP implications.">AI + IP</span>
+    <span class="example-chip" data-text="A tech company collects biometric data from employees without explicit consent. Analyze the legal and ethical issues.">Biometric data</span>
+    <span class="example-chip" data-text="A gig economy platform reclassifies workers as independent contractors to avoid labor protections. Analyze using the ABC test framework.">Gig workers</span>
+    <span class="example-chip" data-text="A quantum computing firm patents an algorithm. Another company uses a similar method claiming it is merely mathematical. Analyze the patent implications.">Quantum IP</span>
+  </div>
+
+  <button class="analyze-btn" id="analyzeBtn" onclick="runAnalysis()">Analyze ↗</button>
+
+  <div class="result-card" id="resultCard">
+    <div class="result-header">
+      <span class="result-title">Analysis</span>
+      <span class="result-badge" id="resultBadge">IRAC</span>
+    </div>
+    <div id="resultLoading" class="loading-dots" style="display:none;">
+      <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+    </div>
+    <div id="resultBody" class="result-body"></div>
+    <div id="errorMsg" class="error-msg" style="display:none;"></div>
+  </div>
+
+  <div class="footer">
+    Built with Claude &nbsp;·&nbsp; AI Experimentation Exercise &nbsp;·&nbsp; Disruption, Technology &amp; Law &nbsp;·&nbsp; Spring 2026<br/>
+    <a href="https://eportfolio.shu.edu/324-dtl-gretzky-angalkro/" target="_blank">Gretzky Portfolio</a>
+  </div>
+
+</div>
+
+<script>
+  let selectedFramework = 'IRAC';
+
+  document.querySelectorAll('.framework-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.framework-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      selectedFramework = btn.dataset.fw;
+    });
+  });
+
+  document.querySelectorAll('.example-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.getElementById('scenarioInput').value = chip.dataset.text;
+    });
+  });
+
+  const frameworkInstructions = {
+    'IRAC': `Analyze using the IRAC method:\n- Issue: Identify the core legal question(s)\n- Rule: State applicable laws, statutes, regulations, or precedents\n- Application: Apply the rule to the specific facts\n- Conclusion: Provide a clear legal conclusion\n\nBe precise and use proper legal reasoning. Cite specific statutes or cases where applicable.`,
+    'Policy Analysis': `Analyze from a policy perspective:\n- Problem: Define the policy problem clearly\n- Existing Framework: Examine current regulatory landscape\n- Gaps: Identify where regulation fails or is absent\n- Recommendations: Propose concrete policy solutions\n- Challenges: Consider implementation barriers and stakeholder resistance`,
+    'Ethical + Legal': `Analyze both the legal and ethical dimensions:\n- Legal: Applicable statutes, regulations, and case law\n- Ethical: Moral considerations, affected parties, and competing values\n- Tension: Where law and ethics diverge — what the law permits vs. what is right\n- Recommendation: What ought to be done, and what legal reform (if any) is needed`,
+    'Stakeholder Impact': `Map the stakeholder landscape:\n- Identify all parties affected by this legal issue\n- Analyze how each stakeholder is impacted legally and practically\n- Surface conflicts between stakeholder interests\n- Recommend a path forward that balances competing claims, grounded in applicable law`
+  };
+
+  async function runAnalysis() {
+    const scenario = document.getElementById('scenarioInput').value.trim();
+    if (!scenario) return;
+
+    const btn = document.getElementById('analyzeBtn');
+    const card = document.getElementById('resultCard');
+    const loading = document.getElementById('resultLoading');
+    const body = document.getElementById('resultBody');
+    const errMsg = document.getElementById('errorMsg');
+    const badge = document.getElementById('resultBadge');
+
+    btn.disabled = true;
+    btn.textContent = 'Analyzing...';
+    card.classList.add('visible');
+    loading.style.display = 'flex';
+    body.textContent = '';
+    errMsg.style.display = 'none';
+    badge.textContent = selectedFramework;
+
+    const systemPrompt = `You are a legal analysis assistant with expertise in technology law, corporate law, and regulatory policy. You help pre-law students and legal researchers analyze complex scenarios with rigor and clarity. Always cite relevant legal frameworks, cases, or statutes where applicable. Be substantive but accessible. Structure your response clearly with labeled sections matching the requested framework.`;
+
+    const userPrompt = `${frameworkInstructions[selectedFramework]}\n\nScenario:\n${scenario}`;
+
+    try {
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 1000,
+          system: systemPrompt,
+          messages: [{ role: 'user', content: userPrompt }]
+        })
+      });
+
+      const data = await response.json();
+      loading.style.display = 'none';
+
+      if (data.content && data.content[0] && data.content[0].text) {
+        body.textContent = data.content[0].text;
+      } else if (data.error) {
+        errMsg.textContent = 'Error: ' + data.error.message;
+        errMsg.style.display = 'block';
+      } else {
+        errMsg.textContent = 'Something went wrong. Please try again.';
+        errMsg.style.display = 'block';
+      }
+    } catch (err) {
+      loading.style.display = 'none';
+      errMsg.textContent = 'Connection error. Please try again.';
+      errMsg.style.display = 'block';
+    }
+
+    btn.disabled = false;
+    btn.textContent = 'Analyze ↗';
+  }
+</script>
+</body>
+</html>
