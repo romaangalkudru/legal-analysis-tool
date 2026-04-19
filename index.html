@@ -78,6 +78,43 @@
     display: block;
   }
 
+  .api-key-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 1.5rem;
+  }
+
+  .api-key-input {
+    flex: 1;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    padding: 9px 14px;
+    border: 0.5px solid var(--border-mid);
+    border-radius: var(--radius-md);
+    background: var(--bg);
+    color: var(--text-primary);
+    transition: border-color 0.15s;
+    letter-spacing: 0.03em;
+  }
+
+  .api-key-input:focus { outline: none; border-color: var(--border-strong); }
+  .api-key-input::placeholder { color: var(--text-tertiary); }
+
+  .api-key-note {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    margin-top: -10px;
+    margin-bottom: 1.5rem;
+    line-height: 1.6;
+  }
+
+  .api-key-note a {
+    color: var(--text-tertiary);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
   .framework-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 1.5rem; }
 
   .framework-btn {
@@ -224,6 +261,12 @@
 
   <div class="divider"></div>
 
+  <span class="section-label">Anthropic API Key</span>
+  <div class="api-key-row">
+    <input type="password" class="api-key-input" id="apiKeyInput" placeholder="sk-ant-..." autocomplete="off" />
+  </div>
+  <p class="api-key-note">Your key is used only in your browser and never stored or transmitted anywhere else. Get one at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a>.</p>
+
   <span class="section-label">Select a framework</span>
   <div class="framework-row" id="frameworkRow">
     <button class="framework-btn active" data-fw="IRAC">IRAC</button>
@@ -289,7 +332,20 @@
 
   async function runAnalysis() {
     const scenario = document.getElementById('scenarioInput').value.trim();
+    const apiKey = document.getElementById('apiKeyInput').value.trim();
+
     if (!scenario) return;
+
+    if (!apiKey) {
+      const errMsg = document.getElementById('errorMsg');
+      const card = document.getElementById('resultCard');
+      card.classList.add('visible');
+      document.getElementById('resultBody').textContent = '';
+      document.getElementById('resultLoading').style.display = 'none';
+      errMsg.textContent = 'Please enter your Anthropic API key above to run an analysis.';
+      errMsg.style.display = 'block';
+      return;
+    }
 
     const btn = document.getElementById('analyzeBtn');
     const card = document.getElementById('resultCard');
@@ -315,6 +371,8 @@
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
           'anthropic-dangerous-direct-browser-access': 'true'
         },
         body: JSON.stringify({
